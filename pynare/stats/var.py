@@ -75,7 +75,7 @@ def var_decomp(
     # perturb and decompose variance matrix
     decomp_tol = 1e-12
     perturb_sigma = md.sigma + decomp_tol*np.eye(*md.sigma.shape, dtype=float)
-    sig_chol = linalg.cholesky(perturb_sigma)
+    sig_chol = linalg.cholesky(perturb_sigma, lower=True)
 
     state_chol = np.matmul(g_utp1, sig_chol)
     gu_chol = np.matmul(gu_dc, sig_chol)
