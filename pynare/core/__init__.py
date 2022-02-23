@@ -1,0 +1,1 @@
+from pynare.core.model import Model
