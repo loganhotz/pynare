@@ -47,7 +47,7 @@ def var_decomp(
 
             for eg in ensure_list(endog):
                 try:
-                    endog_idx.append(endog_names.index(eg))
+                    endog_idx.append(np.where(endog_names == eg)[0].item())
                 except ValueError:
                     raise ValueError(f"'{eg}' is not an endogenous variable") from None
             return decomp_shares[endog_idx]
@@ -112,7 +112,7 @@ def var_decomp(
             endog_idx = []
             for eg in ensure_list(endog):
                 try:
-                    endog_idx.append(endog_names.index(eg))
+                    endog_idx.append(np.where(endog_names == eg)[0].item())
                 except ValueError:
                     raise ValueError(f"'{eg}' is not an endogenous variable") from None
 
@@ -123,7 +123,7 @@ def var_decomp(
             stoch_idx = []
             for sc in ensure_list(stoch):
                 try:
-                    stoch_idx.append(stoch_names.index(sc))
+                    stoch_idx.append(np.where(stoch_names == sc)[0].item())
                 except ValueError:
                     raise ValueError(f"'{sc}' is not a stochastic variable") from None
 
