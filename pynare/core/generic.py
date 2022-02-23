@@ -286,7 +286,7 @@ class GenericModel(object):
 
         for i, shk in enumerate(self.stoch):
             if isinstance(shk.corr, (int, float)):
-                j = stoch_names.index(shk.other)
+                j = np.where(stoch_names == shk.other)[0]
                 cov = np.sqrt(shk.variance*sig[j, j]) * shk.corr
 
                 sig[i, j], sig[j, i] = cov, cov
@@ -294,7 +294,7 @@ class GenericModel(object):
             # with an `if` here, any correlated variables that are declared as
             #    covarying ones later in the shock block are overwritten
             if isinstance(shk.cov, (int, float)):
-                j, cov = stoch_names.index(shk.other), shk.cov
+                j, cov = np.where(stoch_names == shk.other)[0], shk.cov
                 sig[i, j], sig[j, i] = cov, cov
 
         return sig
