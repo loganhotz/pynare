@@ -165,8 +165,8 @@ def _compute_structural_state_space(model: Model):
 
         # in section 4.1, two definitions of A0m_tilde and Ap_tilde are given - we
         #   use the first, which means A0m_tilde needs to be augmented with zeros if
-        #   n_endo - (n_forward + n_static) > 0
-        n_diff = indexes.n_endo - (nf + indexes.n_static)
+        #   n_endog - (n_forward + n_static) > 0
+        n_diff = indexes.n_endog - (nf + indexes.n_static)
 
         if n_diff:
             zeros = np.zeros((nd, n_diff), dtype=float)

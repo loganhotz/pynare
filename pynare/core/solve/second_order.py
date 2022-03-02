@@ -84,7 +84,7 @@ class SecondOrderSolver(object):
         # reordering blocks in the hessian from (declaration order, declaration order)
         #    to (dr order, dr order)
         edr = dr_llx[~np.isnan(dr_llx)]
-        dr = np.concatenate((edr, len(edr)+np.arange(indexes.n_exos))).astype(int)
+        dr = np.concatenate((edr, len(edr)+np.arange(indexes.n_exog))).astype(int)
 
         # to do this hessian reordering, create index array where row index is the
         #    i-th block of hessian, column index is the j-th column of chosen block (both
@@ -113,7 +113,7 @@ class SecondOrderSolver(object):
         fore_jac = jacobian[:, _nonnan_int(self.dr_fore)]
 
         # construct the [dfdy' * dgdx + dfdx' | dfdy] array
-        A = np.zeros((indexes.n_endo, indexes.n_endo), dtype=float)
+        A = np.zeros((indexes.n_endog, indexes.n_endog), dtype=float)
         A[:, ~np.isnan(self.dr_cont)] = cont_jac
         tm1_update = unp.matmul_scalar(fore_jac, gy[~np.isnan(self.dr_fore)])
         A[:, self.tloc] = A[:, self.tloc] + tm1_update
@@ -121,7 +121,7 @@ class SecondOrderSolver(object):
         B = np.identity(nt**2, dtype=float)
 
         # construct the [0 | dfdy'] array
-        C = np.zeros((indexes.n_endo, indexes.n_endo), dtype=float)
+        C = np.zeros((indexes.n_endog, indexes.n_endog), dtype=float)
         C[:, -len(_nonnan_int(self.dr_fore)):] = fore_jac
 
         gy_state = gy[self.tloc]
@@ -146,7 +146,7 @@ class SecondOrderSolver(object):
         state_eye = np.identity(nt, dtype=float)
         cont_gy = gy[~np.isnan(self.dr_cont)]
         fore_gy = unp.matmul_scalar(gy[~np.isnan(self.dr_fore)], gy[self.tloc])
-        exo_block = np.zeros((indexes.n_exos, nt), dtype=float)
+        exo_block = np.zeros((indexes.n_exog, nt), dtype=float)
 
         E = unp.concatenate_maybe_1d((state_eye, cont_gy, fore_gy, exo_block))
         return E
@@ -159,7 +159,7 @@ class SecondOrderSolver(object):
         """
 
         indexes = self.model.indexes
-        nt, ne = indexes.n_state, indexes.n_exos
+        nt, ne = indexes.n_state, indexes.n_exog
 
         gy = lower_sol.gy
         gu = lower_sol.gu
@@ -253,10 +253,10 @@ def solve_ghxu(
     tloc : np.ndarray | int
         the location (in DR order) of the state variables
     A : np.ndarray
-        the (n_endo, n_endo) array `A` in the generalized sylvester equation
+        the (n_endog, n_endog) array `A` in the generalized sylvester equation
         that yields d^2G/dx^2
     C : np.ndarray
-        the (n_endo, n_endo) array `C` in the generalized sylvester equation
+        the (n_endog, n_endog) array `C` in the generalized sylvester equation
         that yields d^2G/dx^2
     ghxx : np.ndarray
         the d^2G/dx^2 matrix term in the second-order approximation
@@ -310,10 +310,10 @@ def solve_ghuu(
     tloc : np.ndarray | int
         the location (in DR order) of the state variables
     A : np.ndarray
-        the (n_endo, n_endo) array `A` in the generalized sylvester equation
+        the (n_endog, n_endog) array `A` in the generalized sylvester equation
         that yields d^2G/dx^2
     C : np.ndarray
-        the (n_endo, n_endo) array `C` in the generalized sylvester equation
+        the (n_endog, n_endog) array `C` in the generalized sylvester equation
         that yields d^2G/dx^2
     ghxx : np.ndarray
         the d^2G/dx^2 matrix term in the second-order approximation
@@ -368,7 +368,7 @@ def solve_del2(
     fore : np.ndarray
         the time-(t+1) row of the lag-lead incidence array, in DR order
     idx_sq : np.ndarray
-        the (n_endo+n_exo, n_endo+n_exo) square array of indices corresponding
+        the (n_endog+n_exog, n_endog+n_exog) square array of indices corresponding
         to the columns of the hessian matrix
     ns : int
         the number of static variables in the model
@@ -401,8 +401,8 @@ def solve_del2(
 
 
     n_fore = np.count_nonzero(~fore_nan)
-    n_endo = jac.shape[0]
-    endo_eye = np.identity(n_endo, dtype=float)
+    n_endog = jac.shape[0]
+    endo_eye = np.identity(n_endog, dtype=float)
 
     static_zero = np.zeros((n_fore, ns), dtype=float)
     pfore_zero = np.zeros((n_fore, npf), dtype=float)
@@ -411,7 +411,7 @@ def solve_del2(
     d_fore = unp.concatenate_maybe_1d((static_zero, gy_fore, pfore_zero), axis=1)
     deriv_fore = endo_eye[~fore_nan] + d_fore
 
-    lhs = np.zeros((n_endo, n_endo), dtype=float)
+    lhs = np.zeros((n_endog, n_endog), dtype=float)
     lhs[:, ~np.isnan(cont)] = jac[:, _nonnan_int(cont)]
     lhs = lhs + np.matmul(jac[:, fore_idx], deriv_fore)
 

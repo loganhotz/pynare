@@ -89,7 +89,7 @@ def solve_first_order(
     gys = solve_static_endo(A, indexes, gym, gyp)
     gy = np.vstack((gys, gyd))
 
-    if indexes.n_exos > 0:
+    if indexes.n_exog > 0:
         fu = A[:, indexes.exogenous_jacobian]
     else:
         fu = J[:, indexes.exogenous_jacobian]

@@ -501,7 +501,7 @@ class VariableIndexManager(object):
         # dict of `name: declaration index`. record stochastic 
         self.var_cols = {eg.name: idx for idx, eg in enumerate(endog)}
         self.stoch = stoch
-        self.n_exos = len(stoch)
+        self.n_exog = len(stoch)
 
         # save variable typers for dr and declaration order accesses
         self.dr_typer = VariableTyper(llx[:, self.dr_order])
@@ -509,8 +509,7 @@ class VariableIndexManager(object):
 
 
     def __repr__(self):
-        n_endo = len(self.lead_lags)
-        return f"VariableIndexManager({n_endo} endog, {self.n_exos} exog)"
+        return f"VariableIndexManager({self.n_endog} endog, {self.n_exog} exog)"
 
     @cached_property
     def dr_order(self):
@@ -549,20 +548,20 @@ class VariableIndexManager(object):
 
     @cached_property
     def n_dynamic(self):
-        return self.n_endo - self.n_static
+        return self.n_endog - self.n_static
 
     @cached_property
     def n_state(self):
         return np.count_nonzero(~np.isnan(self.llx[0]))
 
     @cached_property
-    def n_endo(self):
+    def n_endog(self):
         return self.llx.shape[1]
 
     @cached_property
     def exogenous_jacobian(self):
         # exogenous variables are the right-most columns of the Jacobian
-        return np.arange(self.n_endo_cols, self.n_endo_cols+self.n_exos, dtype=int)
+        return np.arange(self.n_endo_cols, self.n_endo_cols+self.n_exog, dtype=int)
 
 
     def __getattr__(self, attr):

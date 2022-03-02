@@ -342,10 +342,10 @@ def _generate_simul_shocks(
     corr_struct = linalg.cholesky(model.sigma)
 
     if shocks is None:
-        n_exos = len(model.stoch)
+        n_exog = len(model.stoch)
 
         if distribution == 'normal':
-            noise = np.random.normal(size=(periods, n_exos))
+            noise = np.random.normal(size=(periods, n_exog))
             return np.matmul(noise, corr_struct)
 
         else:
@@ -366,14 +366,14 @@ def _drop_simulated_paths(
     Parameters
     ----------
     paths : np.ndarray
-        an (N, n_endo) array
+        an (N, n_endog) array
     drop : int
         the number of periods to drop from beginning of paths
 
     Returns
     -------
     truncated : np.ndarray
-        (N-drop, n_endo) array
+        (N-drop, n_endog) array
     """
     if drop < 0:
         raise ValueError(f"if provided, `drop` must be greater than zero: {drop}")

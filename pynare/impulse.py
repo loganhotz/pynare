@@ -85,9 +85,9 @@ def impulse_response(
             stoch_index = shock # used after the `if` blocks
             stoch = model.stoch[stoch_index]
         except IndexError:
-            n_exos = len(model.stoch)
+            n_exog = len(model.stoch)
             raise ValueError(
-                f"shock index: {shock}. there are only {n_exos} stochastic vars"
+                f"shock index: {shock}. there are only {n_exog} stochastic vars"
             ) from None
 
     elif isinstance(shock, str):
