@@ -596,6 +596,14 @@ class VariableTyper(object):
         return TimedLLX(self.llx, ~np.isnan(self.llx[0]))
 
     @cached_property
+    def cont(self):
+        return np.where(~np.isnan(self.llx[1]))[0]
+
+    @cached_property
+    def cont_timed(self):
+        return TimedLLX(self.llx, ~np.isnan(self.llx[1]))
+
+    @cached_property
     def static(self):
         return np.where(np.isnan(self.llx[0]) & np.isnan(self.llx[2]))[0]
 
