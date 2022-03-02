@@ -28,12 +28,48 @@ class StateSpace(object):
 
         # solve state space equation; partition according to explosive eigens
         eigs, Z_11, Z_12, Z_21, Z_22, T_11, T_12, T_22, S_11, S_12, S_22 = \
-            _solve_and_verify_state_space(D, E, self.model.indexes)
+            unp.partitioned_qz(D, E)
         self.eigen = eigs
 
         self.larrays = LHSArrays(T_11, T_12, T_22)
         self.rarrays = RHSArrays(S_11, S_12, S_22)
         self.zarrays = ZArrays(Z_11, Z_12, Z_21, Z_22)
+
+        # indicator for whether or not BK conditions have been checked. if `None`,
+        #   those conditions have not been checked
+        self.is_verified = None
+
+
+    def verify(self):
+        """
+        front-facing method for checking whether or not the BK conditions are met
+        by this model specification
+        """
+        if self.is_verified is None:
+            self._run_verification()
+        return None
+
+
+    def _run_verification(self):
+        """
+        checking the Blanchard-Kahn (1980) conditions
+        """
+        abs_eigs = np.absolute(self.eigen)
+        n_explosive = np.sum((abs_eigs > 1) | np.isinf(abs_eigs))
+        n_forward = self.model.indexes.n_forward
+
+        if n_explosive != n_forward:
+            self.is_verified = False
+            raise ModelIdentificationError('order', n_explosive, n_forward)
+
+        Z22 = self.zarrays.Z_22
+        if np.linalg.matrix_rank(Z22) != Z22.shape[0]:
+            self.is_verified = False
+            raise ModelIdentificationError('rank')
+
+        self.is_verified = True
+        return None
+
 
     @cached_property
     def sigma(self):
@@ -43,6 +79,7 @@ class StateSpace(object):
         recover the variance matrix of the vector of state variables:
             Var[x] = g_{xt+1, x}*Var[x]*g_{xt+1, x}^T + g_{ut+1}*Var[u]*g_{ut+1}^T
         """
+        self.verify()
         g_xtp1x, g_utp1 = self.kalman_transition
 
         # the variance equation above is a discrete lyapunov: X - A*X*A^T - Q = 0
@@ -54,6 +91,7 @@ class StateSpace(object):
         """
         create the Kalman transition matrices of the state-space
         """
+        self.verify()
         sol = self.model.first_order_solution
 
         dr_sidx = self.model.indexes.dr.state
@@ -65,7 +103,6 @@ class StateSpace(object):
         B = sol.gu[dr_sidx]
 
         return unp.ensure_2darray((A, B))
-
 
     def __repr__(self):
         return 'StateSpace'
@@ -150,42 +187,3 @@ def _compute_structural_state_space(model: Model):
         E = - np.hstack((Am_tilde, A0p_tilde))
 
     return D, E, A
-
-
-
-def _solve_and_verify_state_space(
-    D: np.ndarray,
-    E: np.ndarray,
-    indexes: VariableIndexManager
-):
-    """
-    solve the generalized eigenvalue problem of the state-space representation
-
-    Parameters
-    ----------
-    D : np.ndarray
-        the square matrix on the LHS of the state-space representation in Equation (8)
-    E : np.ndarray
-        the square matrix on the RHS of the state-space representation in Equation (8)
-    indexes : VariableIndexManager
-        the index manager of the model
-
-    Returns
-    -------
-    solution : tuple of np.ndarrays
-    """
-
-    eigs, Z11, Z12, Z21, Z22, T11, T12, T22, S11, S12, S22 = unp.partitioned_qz(D, E)
-
-    # checing for Blanchard-Kahn (1980) order and rank conditions
-    abs_eigs = np.absolute(eigs)
-    n_explosive = np.sum((abs_eigs > 1) | np.isinf(abs_eigs))
-    n_forward = indexes.n_forward
-
-    if n_explosive != n_forward:
-        raise ModelIdentificationError('order', n_explosive, n_forward)
-
-    if np.linalg.matrix_rank(Z22) != Z22.shape[0]:
-        raise ModelIdentificationError('rank')
-
-    return eigs, Z11, Z12, Z21, Z22, T11, T12, T22, S11, S12, S22
