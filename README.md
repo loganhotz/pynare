@@ -51,8 +51,8 @@ automatically generated and printed to the command line
 
 in this example I plot the impulse response using the second-order solution to a
 demand shock of a basic new-Keynesian model defined in
-`pynare/examples/while_in_dev/basic_nk.mod`. the minimum amount of
-code involving `pynare` needed is just:
+`pynare/examples/pynare/basic_nk.mod`. the minimum amount of code involving `pynare`
+needed is just:
 ```python
 import pynare as pn
 import matplotlib.pyplot as plt
