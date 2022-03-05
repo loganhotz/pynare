@@ -249,7 +249,7 @@ class GenericModel(object):
 
     @property
     def exog(self):
-        return self.stoch + self.determ
+        return np.concatenate((self.stoch, self.determ))
 
 
     @property

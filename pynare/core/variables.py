@@ -61,9 +61,7 @@ class VarArray(np.ndarray):
 
             var_seq, variables = args[0], []
             for var in var_seq:
-                if isinstance(var, VarArray):
-                    variables.extend(var.variables)
-                elif is_iterable_not_str(var):
+                if isinstance(var, VarArray) or is_iterable_not_str(var):
                     variables.extend(var)
                 else:
                     variables.append(var)
