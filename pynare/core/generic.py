@@ -88,7 +88,7 @@ class GenericModel(object):
         self._indexes = VariableIndexManager(self.endog, self.stoch)
 
         # don't particularly like passing a partially initialized model...
-        self._steady_state_repr = SteadyRepr(self)
+        self._steady_repr = SteadyRepr(self)
         self._dynamic_repr = DynamicRepr(self)
         self._statespace = StateSpace(self)
 
@@ -201,7 +201,7 @@ class GenericModel(object):
 
 
     @property
-    def steady_state_repr(self):
+    def steady_repr(self):
         """
         prepare the steady state representation of the model based on the ASTs in the
         model's ModelExprs
@@ -209,7 +209,7 @@ class GenericModel(object):
         if self.is_altered:
             self.update()
 
-        return self._steady_state_repr
+        return self._steady_repr
 
 
     @property
@@ -309,7 +309,7 @@ class GenericModel(object):
         # structural features. steady, dynamic, statespace order is important,
         #   which I'm not particularly fond of...
         self._indexes = VariableIndexManager(self.endog, self.stoch)
-        self._steady_state_repr = SteadyRepr(self)
+        self._steady_repr = SteadyRepr(self)
         self._dynamic_repr = DynamicRepr(self)
         self._statespace = StateSpace(self)
 

@@ -75,7 +75,7 @@ class SteadyState(object):
 
     @property
     def jacobian(self):
-        return self.model.steady_state_repr.jacobian
+        return self.model.steady_repr.jacobian
 
 
     def __repr__(self):
@@ -99,7 +99,7 @@ def _define_simple_least_squares(M: Model):
     least squares function
     """
 
-    ss_expr = M.steady_state_repr.functions
+    ss_expr = M.steady_repr.functions
 
     def _least_squares(x):
         return np.sum(np.power(ss_expr(x), 2))
