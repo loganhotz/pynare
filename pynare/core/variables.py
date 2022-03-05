@@ -492,10 +492,10 @@ class VariableIndexManager(object):
                         "was not seen at any time period"
                     ) from None
 
-        # number of endog variables at all periods. then replace indicators with the
-        #    jacobian column index
-        self.n_endo_cols = int(np.nansum(llx))
-        llx[llx == 1] = np.arange(self.n_endo_cols)
+        # number of endog variables incidences at all periods. then replace indicators
+        #   with the jacobian column index
+        self.n_endog_inc = int(np.nansum(llx))
+        llx[llx == 1] = np.arange(self.n_endog_inc)
         self.llx = llx
 
         # dict of `name: declaration index`. record stochastic 
@@ -561,7 +561,7 @@ class VariableIndexManager(object):
     @cached_property
     def exogenous_jacobian(self):
         # exogenous variables are the right-most columns of the Jacobian
-        return np.arange(self.n_endo_cols, self.n_endo_cols+self.n_exog, dtype=int)
+        return np.arange(self.n_endog_inc, self.n_endog_inc+self.n_exog, dtype=int)
 
 
     def __getattr__(self, attr):

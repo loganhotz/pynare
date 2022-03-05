@@ -266,10 +266,20 @@ class ModelRepr(object):
 
         self.endog_names = self.endog.names
 
+        self.n_endog = len(self.endog)
+
     def __repr__(self):
         class_ = self.__class__.__name__
         eg, ep = len(self.endog), len(self.exprs)
         return f"{class_}({eg} endog, {ep} exprs)"
+
+    def __call__(self, var):
+        if len(var) == self.n_endog:
+            return self.functions(var)
+        else:
+            raise ValueError(
+                f"{len(var)}. number of arguments does not match number of endog"
+            ) from None
 
 
 
@@ -326,6 +336,10 @@ class DynamicRepr(ModelRepr):
         self.func_list = funcs
         self.functions = vectorize_functions(self.func_list)
 
+        self.n_endog = self.model.indexes.n_endog_inc
+        self.n_stoch = len(self.stoch_names)
+        self.n_vars = self.n_endog + self.n_stoch
+
     @cached_property
     def jacobian(self):
         return ModelJacobian(self.model)
@@ -333,6 +347,24 @@ class DynamicRepr(ModelRepr):
     @cached_property
     def hessian(self):
         return ModelHessian(self.model)
+
+    def __call__(self, var):
+        """
+        dynamic representation call can optionally exclude the exogenous variables
+        """
+        if len(var) == self.n_vars:
+            return self.functions(var)
+        elif len(var) == self.n_endog:
+            var_exog = np.concatenate((var, [0 for _ in range(self.n_stoch)]))
+            return self.functions(var_exog)
+        else:
+            raise ValueError(
+                f"len(args) = {len(var)}. when calling the dynamic representation, "
+                "the argument length must equal the number of endogenous appearances "
+                f"( = {self.n_endog} ), or the number of columns in the jacobian, "
+                f"( = {self.n_vars} )"
+            ) from None
+
 
 
 def steady_func(
