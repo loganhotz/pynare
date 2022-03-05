@@ -206,7 +206,7 @@ class Model(GenericModel):
 
     def impulse_response(
         self,
-        shock: Union[Sequence[int, str], int, str] = 0,
+        exog: Union[Sequence[int, str], int, str] = 0,
         periods: int = 20,
         size: Union[int, float] = 1
     ):
@@ -215,9 +215,9 @@ class Model(GenericModel):
 
         Parameters
         ----------
-        shock : int | str | Iterable[int, str] ( = 0 )
-            the exogenous variable to shock. if an int, the 'shock'-th exogenous
-            variable is shocked, and if a str, 'shock' is interpreted as the name of
+        exog : int | str | Iterable[int, str] ( = 0 )
+            the exogenous variable to shock. if an int, the 'exog'-th exogenous
+            variable is shocked, and if a str, 'exog' is interpreted as the name of
             the exogenous variable to shock
         periods : int ( = 20 )
             the number of periods to calculate the responses for
@@ -228,7 +228,7 @@ class Model(GenericModel):
         -------
         ImpulseResponse
         """
-        return impulse_response(self, shock, periods, size)
+        return impulse_response(self, exog, periods, size)
 
 
     def summary(self, **kwargs):

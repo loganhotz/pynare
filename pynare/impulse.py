@@ -45,7 +45,7 @@ class ImpulseResponse(object):
 
 def impulse_response(
     model: Model,
-    shock: Union[Sequence[int, str], int, str] = 0,
+    exog: Union[Sequence[int, str], int, str] = 0,
     periods: int = 20,
     size: Union[int, float] = 1
 ):
@@ -56,9 +56,9 @@ def impulse_response(
     ----------
     model : Model
         the model to compute an impulse response of
-    shock : int | str | Iterable[int, str] ( = 0 )
-        the exogenous variable to shock. if an int, the 'shock'-th exogenous
-        variable is shocked, and if a str, 'shock' is interpreted as the name of
+    exog : int | str | Iterable[int, str] ( = 0 )
+        the exogenous variable to shock. if an int, the 'exog'-th exogenous
+        variable is shocked, and if a str, 'exog' is interpreted as the name of
         the exogenous variable to shock
     periods : int ( = 20 )
         the number of periods to calculate the responses for
@@ -69,46 +69,46 @@ def impulse_response(
     -------
     ImpulseResponse
     """
-    # check that `shock` is an exogenous variable in the model
-    if isinstance(shock, StochVar):
+    # check that `exog` is an exogenous variable in the model
+    if isinstance(exog, StochVar):
         try:
-            stoch_index = np.where(model.stoch.names == shock.name)[0].item()
-            stoch = shock
+            stoch_index = np.where(model.stoch.names == exog.name)[0].item()
+            stoch = exog
         except ValueError:
             # thrown by `item()` when `where()[0]` evaluates to empty array
             raise ValueError(
-                f"'{shock}' is not a stochastic variable of the model"
+                f"'{exog}' is not a stochastic variable of the model"
             ) from None
 
-    elif isinstance(shock, int):
+    elif isinstance(exog, int):
         try:
-            stoch_index = shock # used after the `if` blocks
+            stoch_index = exog # used after the `if` blocks
             stoch = model.stoch[stoch_index]
         except IndexError:
             n_exog = len(model.stoch)
             raise ValueError(
-                f"shock index: {shock}. there are only {n_exog} stochastic vars"
+                f"shock index: {exog}. there are only {n_exog} stochastic vars"
             ) from None
 
-    elif isinstance(shock, str):
+    elif isinstance(exog, str):
         try:
-            stoch_index = np.where(model.stoch.names == shock)[0].item()
+            stoch_index = np.where(model.stoch.names == exog)[0].item()
             stoch = model.stoch[stoch_index]
         except ValueError:
             raise ValueError(
-                f"'{shock}' is not a stochastic variable of the model"
+                f"'{exog}' is not a stochastic variable of the model"
             ) from None
 
     else:
-        raise TypeError(f"{type(shock)}. `shock` can only be int or str, or StochVar")
+        raise TypeError(f"{type(exog)}. `exog` can only be int or str, or StochVar")
 
     # generate one-period shock of size `size` (in standard deviation space)
     n_stochs = len(model.stoch)
-    shock = np.zeros((periods, n_stochs), dtype=float)
-    shock[0, stoch_index] = size
+    shocks = np.zeros((periods, n_stochs), dtype=float)
+    shocks[0, stoch_index] = size
 
     # run simulation with single impulse
-    sim = simulate(model, shocks=shock)
+    sim = simulate(model, shocks=shocks)
     paths = sim.paths
     impulse = paths - model.ss.values
 
