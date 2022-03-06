@@ -114,6 +114,21 @@ class UnaryOp(AST):
     def __str__(self):
         return f'<UnaryOp[{self.op.value}]>'
 
+class CompOp(AST):
+
+    def __init__(
+        self,
+        left: AST,
+        op: Token,
+        right: AST
+    ):
+        self.left = left
+        self.op = op
+        self.right = right
+
+    def __str__(self):
+        return f'<CompOp[{self.op.value}]>'
+
 class Num(AST):
 
     def __init__(

@@ -100,8 +100,11 @@ class Token(object):
 
     def __str__(self):
         return (
-            f'Token[{self.type}, {self.value}, {self.line_number}, {self.line_pos}]'
+            f"Token[{self.type}, {self.value}, {self.line_number}, {self.line_pos}]"
         )
+
+    def __repr__(self):
+        return f"Token[{self.type}, {repr(self.value)}]"
 
 
 reserved_funcs = {
@@ -184,6 +187,18 @@ class _BaseEvaluator(ABCVisitor):
         elif node.op.type == POWER:
             return self.visit(node.left) ** self.visit(node.right)
 
+    def visit_CompOp(self, node):
+        if node.op.type == LT:
+            return self.visit(node.left) < self.visit(node.right)
+        elif node.op.type == LTOE:
+            return self.visit(node.left) <= self.visit(node.right)
+        elif node.op.type == GT:
+            return self.visit(node.left) > self.visit(node.right)
+        elif node.op.type == GTOE:
+            return self.visit(node.left) >= self.visit(node.right)
+        elif node.op.type == EQUALITY:
+            return self.visit(node.left) == self.visit(node.right)
+
     def visit_UnaryOp(self, node):
         if node.op.type == PLUS:
             return + self.visit(node.expr)
@@ -198,10 +213,10 @@ class _BaseEvaluator(ABCVisitor):
             try:
                 return self.scope.lookup(node.value)
             except AttributeError:
-                return self.scope.get(node.value)
+                return self.scope[node.value]
 
         except KeyError:
-            raise SyntaxError(f'symbol {node.value} was not assigned value before use')
+            raise SyntaxError(f"symbol '{node.value}' was not assigned value before use")
 
     def visit_Function(self, node):
         f = node.value
