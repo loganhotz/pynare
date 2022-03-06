@@ -19,7 +19,7 @@ from pynare.core.linearizing import (
 )
 
 from pynare.parsing.lexer import DynareLexer
-from pynare.parsing.parser import BaseParser
+from pynare.parsing.parser import DynareParser
 
 import pynare.parsing.ast as ast
 import pynare.parsing.base as base
@@ -29,7 +29,7 @@ import pynare.parsing.base as base
 class ModelExprs(MutableSequence):
     """ list-like object that only holds parsed ASTs of model expressions """
 
-    def __init__(self, exprs: Iterable[AST, str]):
+    def __init__(self, exprs: Iterable[AST, str] = []):
         super().__init__()
         if isinstance(exprs, ModelExprs):
             self.exprs = exprs.exprs
@@ -87,7 +87,7 @@ class ModelExprs(MutableSequence):
 
 
 
-class ExprParser(BaseParser):
+class ExprParser(DynareParser):
 
     def __init__(
         self,
@@ -100,157 +100,6 @@ class ExprParser(BaseParser):
     def parse(self):
         return self.model_expression()
 
-
-    def model_expression(self) -> ast.BinaryOp:
-        """
-        this is a little different than the `model_expression` method of the parsers
-        in pynare/parsing/parsers, which return an ast.ModelExpression object. this
-        method does not handle any expression tags or the like, so just the model
-        equation is parsed, meaning a BinaryOp[-] object is returned
-        """
-        left = self.mexpr()
-        if self.peek_type() == base.EQUALS:
-            self.eat(base.EQUALS)
-            right = self.mexpr()
-
-        else:
-            # if there's no equals sign, it's assumed this is a homogenous equation
-            zero = base.Token(base.NUMBER, 0)
-            right = ast.Num(zero)
-
-        minus = base.Token(base.MINUS, '-')
-        return ast.BinaryOp(
-            left=left,
-            op=minus,
-            right=right
-        )
-
-
-    def variable(self) -> ast.Var:
-        node = ast.Var(self.current_token)
-        self.eat(base.ID)
-        return node
-
-
-    def maybe_period_variable(self) -> Union[ast.Var, ast.PeriodVar]:
-        var = self.variable()
-        if self.peek_type() == base.LPARE:
-            direction, offset = self.period_offset()
-            return ast.PeriodVar(
-                var=var,
-                direction=direction,
-                offset=offset
-            )
-
-        return var
-
-
-    def period_offset(self) -> Tuple[base.Token, base.Token]:
-
-        self.eat(base.LPARE)
-        if self.current_token.type in (base.PLUS, base.MINUS):
-            direction = self.current_token
-            self.eat(direction.type)
-        else:
-            self.error()
-        periods = self.current_token
-        self.eat(base.NUMBER)
-        self.eat(base.RPARE)
-
-        return direction, periods
-
-
-    def matom(self) -> ast.AST:
-        token = self.current_token
-
-        if token.type == base.ID:
-            var = self.maybe_period_variable()
-            return var
-
-        elif token.type == base.NUMBER:
-            self.eat(base.NUMBER)
-            return ast.Num(token)
-
-        elif token.type == base.LPARE:
-            self.eat(base.LPARE)
-            node = self.mexpr()
-            self.eat(base.RPARE)
-            return node
-
-        elif token.type in (base.MINUS, base.PLUS):
-            self.eat(token.type)
-            node = ast.UnaryOp(
-                op=token,
-                expr=self.mterm()
-            )
-            return node
-
-        self.error()
-
-
-    def mcall(self) -> ast.AST:
-        while self.current_token.type == base.FUNCTION:
-            token = self.current_token
-            self.eat(base.FUNCTION)
-            self.eat(base.LPARE)
-            node = ast.Function(
-                token=token,
-                expr=self.mexpr()
-            )
-            self.eat(base.RPARE)
-
-        try:
-            return node
-        except UnboundLocalError:
-            return self.matom()
-
-
-    def mexponent(self) -> ast.AST:
-        node = self.mcall()
-
-        while self.current_token.type == base.POWER:
-            token = self.current_token
-            self.eat(base.POWER)
-
-            node = ast.BinaryOp(
-                left=node,
-                op=token,
-                right=self.mexponent()
-            )
-
-        return node
-
-
-    def mterm(self) -> ast.AST:
-        node = self.mexponent()
-
-        while self.current_token.type in (base.MUL, base.DIV):
-            token = self.current_token
-            self.eat(token.type)
-
-            node = ast.BinaryOp(
-                left=node,
-                op=token,
-                right=self.mexponent()
-            )
-
-        return node
-
-
-    def mexpr(self) -> ast.AST:
-        node = self.mterm()
-
-        while self.current_token.type in (base.PLUS, base.MINUS):
-            token = self.current_token
-            self.eat(token.type)
-
-            node = ast.BinaryOp(
-                left=node,
-                op=token,
-                right=self.mterm()
-            )
-
-        return node
 
 
 class ModelRepr(object):
