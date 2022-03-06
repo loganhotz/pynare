@@ -4,9 +4,8 @@ forward-facing functions for parsing the text that defines models
 
 from __future__ import annotations
 
-from pynare.parsing.lexer import ExprLexer, DynareLexer
-from pynare.parsing.parser import BaseParser, DynareParser
-
+from pynare.parsing.base import BaseEvaluator
+from pynare.parsing.parser import BaseParser
 from pynare.parsing.factory import ModelFactory
 
 
@@ -35,7 +34,8 @@ def read_model(
 
 
 def parse_string(
-    expr: str
+    expr: str,
+    exp: str = 'standard'
 ) -> AST:
     """
     a top-level function for translating simple mathematical expressions in string
@@ -45,12 +45,43 @@ def parse_string(
     ----------
     expr : str
         a mathematical expression
+    exp : str ( = 'standard' )
+        the paradigm for recognizing exponents in `expr`. accepted values are
+        'standard', and 'python', which use '^' and '**' as their respective
+        exponent signifiers
 
     Returns
     -------
     AST
     """
-    lexer = ExprLexer(expr)
-    parser = BaseParser(lexer)
-
+    parser = BaseParser(expr, exp=exp)
     return parser.parse()
+
+
+
+def evaluate(
+    expr: str,
+    scope: Mapping = {},
+    exp: str = 'standard'
+):
+    """
+    evaluate a simple mathematical expression involving algebraic operations, the
+    reserved functions, and comparative operators
+
+    Parameters
+    ----------
+    expr : str
+        a mathematical expression
+    scope : Mapping
+        a mapping of variable names in `expr` to their values
+    exp : str ( = 'standard' )
+        the paradigm for recognizing exponents in `expr`. accepted values are
+        'standard', and 'python', which use '^' and '**' as their respective
+        exponent signifiers
+
+    Returns
+    -------
+    int | float | bool
+    """
+    ast = parse_string(expr, exp=exp)
+    return BaseEvaluator(ast, scope=scope)
