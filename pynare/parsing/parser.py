@@ -10,6 +10,7 @@ import pynare.parsing.ast as ast
 import pynare.parsing.base as base
 import pynare.parsing.dynare as dyn
 
+from pynare.parsing.lexer import BaseLexer
 from pynare.parsing.base import Token
 from pynare.errors import PynareSyntaxError
 
@@ -18,15 +19,22 @@ from pynare.errors import PynareSyntaxError
 class BaseParser(object):
     """
     parser class for basic parser functions - type checking, peeking at
-    future tokens, raising errors. Also has mathematical expression
+    future tokens, raising errors. also has mathematical expression
     parsing functionality that would be shared across all languages
     """
 
     def __init__(
         self,
-        lexer: BaseLexer
+        obj: str | BaseLexer,
+        exp: str = 'standard'
     ):
-        self.lexer = lexer
+        if isinstance(obj, str):
+            self.string = obj
+            self.lexer = BaseLexer(obj, exp=exp)
+
+        else:
+            self.string = obj.text
+            self.lexer = obj
 
         try:
             self.current_token = self.lexer.get_next_token()
@@ -37,10 +45,10 @@ class BaseParser(object):
     def error(self):
         raise PynareSyntaxError(self.current_token)
 
-    def eat(self, token_type):
+    def eat(self, token_type: str):
         """
-        Compare the current token type with the passed token type and if they
-        match, assign the next token to current token. Otherwise, error
+        compare the current token type with the passed token type. if they match,
+        assign the next token to `current_token`. otherwise, error out
         """
         if self.current_token.type == token_type:
             self.current_token = self.lexer.get_next_token()
@@ -170,8 +178,34 @@ class BaseParser(object):
 
         return node
 
+    def comp_expr(self) -> AST:
+        """
+        comp_expr : expr ((LT | LTOE | GT | GTOE | EQUALITY) expr)
+
+        this is an admittedly limited comparative expression parser. it can only
+        handle a single
+            expr COMP expr
+        comparison, whereas other languages can handle multiple in one line. for
+        my purposes, this ought to be enough for now
+        """
+        node = self.expr()
+
+        if self.current_token.type in COMPS:
+            token = self.current_token
+            self.eat(token.type)
+
+            node = ast.CompOp(
+                left=node,
+                op=token,
+                right=self.expr()
+            )
+
+        return node
+
     def parse(self) -> AST:
-        return self.expr()
+        return self.comp_expr()
+
+COMPS = (base.LT, base.LTOE, base.GT, base.GTOE, base.EQUALITY)
 
 
 
@@ -199,11 +233,8 @@ class DynareParser(BaseParser):
         )
 
 
-
-    #
-    # Declaring variables and assigning parameter values in the beginning 
+    # declaring variables and assigning parameter values in the beginning
     #    of the mod file
-    #
     def variable_preamble(self) -> VariablePreamble:
         """
         The variable preamble is the entirety of mod file that comes before the
@@ -289,9 +320,8 @@ class DynareParser(BaseParser):
             right=assigned_value
         )
 
-    #
+
     # regular and period variables
-    #
     def variable(self) -> Var:
         """
         Quick function for translating variable token to Var AST
@@ -333,9 +363,8 @@ class DynareParser(BaseParser):
 
         return direction, periods
 
-    #
-    # Defining the Model
-    #
+
+    # defining the model
     def model_definition(self) -> ModelDefinition:
         """
         model_definition : MODEL SEMI model END SEMI
@@ -461,11 +490,10 @@ class DynareParser(BaseParser):
             right=right
         )
 
-    # 
+
     # the mathematical expressions in the model. these are identical to the 
     #    similarly named functions in the BaseParser, with the only difference
     #    being the 'matom' function can parse PeriodVars and Vars
-    #
     def matom(self) -> AST:
         token = self.current_token
 
@@ -554,9 +582,8 @@ class DynareParser(BaseParser):
 
         return node
 
-    #
-    # Commands for after model has been defined
-    #
+
+    # commands for after model has been defined
     def general_model_actions(self) -> ModelActions:
         """
         After the model definition has been parsed in model_definition, the
@@ -838,9 +865,8 @@ class DynareParser(BaseParser):
 
         raise NotImplementedError(self.current_token)
 
-    #
+
     # parsing argument lists
-    #
     def optional_argument_list(self) -> CompoundASTList:
         """
         dynare allows for both keyword arguments and placement arguments, whereas
