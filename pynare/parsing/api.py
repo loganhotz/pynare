@@ -60,7 +60,7 @@ def parse_string(
 
 
 def evaluate(
-    expr: str,
+    expr: str | AST,
     scope: Mapping = {},
     exp: str = 'standard'
 ):
@@ -70,8 +70,8 @@ def evaluate(
 
     Parameters
     ----------
-    expr : str
-        a mathematical expression
+    expr : str | AST
+        a mathematical expression. can be a string or an already-parsed AST
     scope : Mapping
         a mapping of variable names in `expr` to their values
     exp : str ( = 'standard' )
@@ -83,5 +83,7 @@ def evaluate(
     -------
     int | float | bool
     """
-    ast = parse_string(expr, exp=exp)
-    return BaseEvaluator(ast, scope=scope)
+    if isinstance(expr, str):
+        ast = parse_string(expr, exp=exp)
+        return BaseEvaluator(ast, scope=scope)
+    return BaseEvaluator(expr, scope=scope)
