@@ -206,19 +206,18 @@ class Model(GenericModel):
 
     def impulse_response(
         self,
-        exog: Union[Sequence[int, str], int, str] = 0,
+        exog: str | Sequence[str] = None,
         periods: int = 20,
-        size: Union[int, float] = 1
+        size: int | float = 1
     ):
         """
         compute the impulse response of a model to an exogenous shock
 
         Parameters
         ----------
-        exog : int | str | Iterable[int, str] ( = 0 )
-            the exogenous variable to shock. if an int, the 'exog'-th exogenous
-            variable is shocked, and if a str, 'exog' is interpreted as the name of
-            the exogenous variable to shock
+        exog : str | Iterable[str] ( = None )
+            the exogenous variable to shock. if 'None', the first stochastic variable
+            is the one whose impulse response is computed
         periods : int ( = 20 )
             the number of periods to calculate the responses for
         size : int | float ( = 1 )
