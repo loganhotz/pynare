@@ -69,48 +69,29 @@ def impulse_response(
     -------
     ImpulseResponse
     """
-    # check that `exog` is an exogenous variable in the model
-    if isinstance(exog, StochVar):
-        try:
-            stoch_index = np.where(model.stoch.names == exog.name)[0].item()
-            stoch = exog
-        except ValueError:
-            # thrown by `item()` when `where()[0]` evaluates to empty array
-            raise ValueError(
-                f"'{exog}' is not a stochastic variable of the model"
-            ) from None
 
-    elif isinstance(exog, int):
+    if isinstance(exog, int):
         try:
-            stoch_index = exog # used after the `if` blocks
-            stoch = model.stoch[stoch_index]
+            exog_index = exog # used after this `if` block
+            exog = model.stoch[exog_index]
         except IndexError:
             n_exog = len(model.stoch)
             raise ValueError(
                 f"shock index: {exog}. there are only {n_exog} stochastic vars"
             ) from None
 
-    elif isinstance(exog, str):
-        try:
-            stoch_index = np.where(model.stoch.names == exog)[0].item()
-            stoch = model.stoch[stoch_index]
-        except ValueError:
-            raise ValueError(
-                f"'{exog}' is not a stochastic variable of the model"
-            ) from None
-
     else:
-        raise TypeError(f"{type(exog)}. `exog` can only be int or str, or StochVar")
+        exog_index = model.stoch.get_loc(exog)
 
     # generate one-period shock of size `size` (in standard deviation space)
     n_stochs = len(model.stoch)
     shocks = np.zeros((periods, n_stochs), dtype=float)
-    shocks[0, stoch_index] = size
+    shocks[0, exog_index] = size
 
     # run simulation with single impulse
     sim = simulate(model, shocks=shocks)
     paths = sim.paths
     impulse = paths - model.ss.values
 
-    response = ImpulseResponse(model, exog=stoch, impulse=impulse, size=size)
+    response = ImpulseResponse(model, exog=exog, impulse=impulse, size=size)
     return response

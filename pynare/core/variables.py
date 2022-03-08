@@ -26,7 +26,6 @@ class VarArray(np.ndarray):
 
         return obj
 
-
     def __array_finalize__(self, obj):
         try:
             names = [v.name for v in self]
@@ -50,7 +49,6 @@ class VarArray(np.ndarray):
         self.vtype = first
         self.names = np.array(names, dtype=str)
 
-
     def __array_function__(self, func, types, args, kwargs):
         """
         this method is called by top-level numpy methods. it might have to be extended
@@ -71,7 +69,6 @@ class VarArray(np.ndarray):
         else:
             return NotImplemented
 
-
     def __contains__(self, obj):
         if isinstance(obj, str):
             return obj in self.names
@@ -79,9 +76,54 @@ class VarArray(np.ndarray):
             return obj.name in self.names
         return False
 
-
     def __repr__(self):
         return f"VarArray(vtype={self.vtype})"
+
+    def __str__(self):
+        return f"VarArray([{', '.join(self.names)}], vtype={self.vtype})"
+
+    def get_loc(self, key: str | Iterable[str]):
+        """
+        retrieve the locations of variables in VarArray based one their name
+
+        Parameters
+        ----------
+        key : str | Iterable[str]
+            the desired variable names
+
+        Returns
+        -------
+        numpy array of integer locations
+
+        Notes
+        -----
+        we choose not to use `np.where(np.in1d(...))` because the resulting index
+        array sorts its elements based on their locations in `key`, instead of their
+        ordering in `self.names`. see
+            https://stackoverflow.com/questions/8251541/numpy-for-every-element-in-
+            one-array-find-the-index-in-another-array
+        """
+        from rich import print
+
+        if is_iterable_not_str(key):
+            idx = np.zeros(len(key), dtype=int)
+
+            for i, var in enumerate(key):
+                name = var.name if isinstance(var, ModelVar) else name
+                loc = np.where(name == self.names)[0]
+                if not loc.size:
+                    raise KeyError(f"{repr(var)} is not a variable")
+                idx[i] = loc
+
+            return idx
+
+        else:
+            name = key.name if isinstance(key, ModelVar) else key
+            loc = np.where(name == self.names)[0]
+            if not loc.size:
+                raise KeyError(f"{repr(key)} is not a variable")
+
+            return loc.item()
 
 
 
