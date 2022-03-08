@@ -54,6 +54,9 @@ def var_decomp(
 
         return decomp_shares
 
+    # this is 'None' if the model hasn't been solved yet
+    if not md.solution_order:
+        _ = md.solve()
 
     if md.solution_order == 1:
         gy, gu = md.solution.gy, md.solution.gu

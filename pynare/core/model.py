@@ -306,14 +306,12 @@ class Model(GenericModel):
     @property
     def solution_order(self):
         """
-        returns the solution order
+        returns the solution order. if the model hasn't been solved yet, return None
         """
         try:
-            _ = self._solution
+            return self._solution.order
         except AttributeError:
-            _ = self.solve(order=default_order)
-
-        return self._solution.order
+            return None
 
 
     @property

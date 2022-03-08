@@ -30,6 +30,10 @@ def mean(md: Model):
         a vector of length len(md.endog)
     """
     ss = md.ss.values
+
+    if not md.solution_order:
+        _ = md.solve()
+
     if md.solution_order == 1:
         return ss
 
@@ -137,6 +141,9 @@ def cov(md: Model):
     cov : np.ndarray
         a square array of size (en, en) where en = len(md.endog)
     """
+    if not md.solution_order:
+        _ = md.solve()
+
     if md.solution_order == 1:
         gy, gu = md.solution.gy, md.solution.gu
 
@@ -215,6 +222,9 @@ def autocov(
         (p, n_endog, n_endog) array, where autocov[i, j, k] is the i-period covariance
         of the j- and k-th endogenous variables (in declaration order)
     """
+    if not md.solution_order:
+        _ = md.solve()
+
     if md.solution_order == 1:
         gy, gu = md.solution.gy, md.solution.gu
 
