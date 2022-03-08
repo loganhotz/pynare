@@ -45,9 +45,9 @@ class ImpulseResponse(object):
 
 def impulse_response(
     model: Model,
-    exog: Union[Sequence[int, str], int, str] = 0,
+    exog: str | Sequence[str] = None,
     periods: int = 20,
-    size: Union[int, float] = 1
+    size: int | float = 1
 ):
     """
     compute the impulse response of a model to an exogenous shock
@@ -56,10 +56,9 @@ def impulse_response(
     ----------
     model : Model
         the model to compute an impulse response of
-    exog : int | str | Iterable[int, str] ( = 0 )
-        the exogenous variable to shock. if an int, the 'exog'-th exogenous
-        variable is shocked, and if a str, 'exog' is interpreted as the name of
-        the exogenous variable to shock
+    exog : str | Sequence[str] ( = None )
+        the exogenous variable to shock. if 'None', the first stochastic variable
+        is the one whose impulse response is computed
     periods : int ( = 20 )
         the number of periods to calculate the responses for
     size : int | float ( = 1 )
@@ -70,16 +69,8 @@ def impulse_response(
     ImpulseResponse
     """
 
-    if isinstance(exog, int):
-        try:
-            exog_index = exog # used after this `if` block
-            exog = model.stoch[exog_index]
-        except IndexError:
-            n_exog = len(model.stoch)
-            raise ValueError(
-                f"shock index: {exog}. there are only {n_exog} stochastic vars"
-            ) from None
-
+    if exog is None:
+        exog_index = 0
     else:
         exog_index = model.stoch.get_loc(exog)
 
