@@ -109,7 +109,7 @@ class VarArray(np.ndarray):
             idx = np.zeros(len(key), dtype=int)
 
             for i, var in enumerate(key):
-                name = var.name if isinstance(var, ModelVar) else name
+                name = var.name if isinstance(var, ModelVar) else var
                 loc = np.where(name == self.names)[0]
                 if not loc.size:
                     raise KeyError(f"{repr(var)} is not a variable")
