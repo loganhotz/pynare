@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from functools import cached_property
-from collections import Sequence
 from collections.abc import MutableMapping
 import numpy as np
 
@@ -468,6 +467,10 @@ class LeadLagCounter(base.ABCVisitor):
     def count(self):
         self.visit(self.tree)
         return self.endog_periods
+
+    def visit_ModelExpression(self, node):
+        self.visit(node.left)
+        self.visit(node.right)
 
     def visit_BinaryOp(self, node):
         self.visit(node.left)

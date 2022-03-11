@@ -175,6 +175,10 @@ class _BaseEvaluator(ABCVisitor):
     def evaluate(self):
         return self.visit(self.tree)
 
+    def visit_ModelExpression(self, node):
+        # needed for evaluation of dynamic & steady Model representations
+        return self.visit(node.left) - self.visit(node.right)
+
     def visit_BinaryOp(self, node):
         if node.op.type == PLUS:
             return self.visit(node.left) + self.visit(node.right)
@@ -314,6 +318,13 @@ class _ASTSubstitution(ABCVisitor):
 
         token = Token(NUMBER, var_value)
         return ast.Num(token)
+
+    def visit_ModelExpression(self, node):
+        # needed for substitution of dynamic & steady Model representations
+        self.visit(node.left)
+        self.visit(node.right)
+        self.maybe_substitute(node, 'left')
+        self.maybe_substitute(node, 'right')
 
     def visit_BinaryOp(self, node):
         self.visit(node.left)
