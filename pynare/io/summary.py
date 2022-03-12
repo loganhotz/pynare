@@ -473,9 +473,10 @@ class SecondOrderSummary(SolutionSummary):
         st_idx = np.argsort(dr_idx[np.in1d(dr_idx, idx.state)])
 
         # reorder the second-order matrices in the same was as gy
-        n_st = len(st_idx)
+        n_st, n_exog = len(st_idx), self.obj.model.indexes.n_exog
         gyx_idx = n_st*np.repeat(st_idx, n_st) + np.tile(st_idx, n_st)
-        gyu_idx = n_st*np.repeat(st_idx, n_st) + np.tile(np.arange(n_st), n_st)
+        gyu_idx = n_st*np.repeat(np.arange(n_exog), n_st) \
+            + np.tile(np.arange(n_st), n_exog)
 
         gy = gy[:, st_idx]
         gyx = gyx[:, gyx_idx]
