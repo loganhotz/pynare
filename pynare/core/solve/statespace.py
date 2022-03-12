@@ -139,7 +139,11 @@ def _compute_structural_state_space(model: Model):
     Q, R = np.linalg.qr(S, mode='complete')
 
     # for model to be properly identified, rank(R) must equal number of static vars
-    _r = np.linalg.matrix_rank(R)
+    if R.size:
+        _r = np.linalg.matrix_rank(R)
+    else:
+        _r = 0
+
     if _r != indexes.n_static:
         raise ModelIdentificationError(_r, indexes.n_static)
 
@@ -169,7 +173,7 @@ def _compute_structural_state_space(model: Model):
         n_diff = indexes.n_endog - (nf + indexes.n_static)
 
         if n_diff:
-            zeros = np.zeros((nd, n_diff), dtype=float)
+            zeros = np.zeros((nd, nm), dtype=float)
             A0m_tilde = np.hstack((A0m_tilde, zeros))
 
             Im = np.eye(nm, nb, k=n_diff)
