@@ -8,6 +8,7 @@ from pynare.core.steady import SteadyState
 from pynare.core.solve import (
     FirstOrderSolution,
     SecondOrderSolution,
+    OccBinSolution,
     default_order
 )
 
@@ -154,17 +155,54 @@ class Model(GenericModel):
     def solve(
         self,
         order: int = 0,
+        constraint: Sequence[str | Sequence[str]] = [],
         *args, **kwargs
     ):
-        if not order:
-            order = default_order
+        """
+        compute the solution of the model. produces the linear approximation of the
+        solution by default, but can also compute the occbin solution as outlined in
+        "OccBin: A Toolkit for Solving Dynamic Models with Occasionally Binding
+        Constraints Easily" (2014) by Guerrieri & Iacoviello.
 
-        if order == 1:
-            solution = FirstOrderSolution(self)
-        elif order == 2:
-            solution = SecondOrderSolution(self)
+        Parameters
+        ----------
+        order : int ( = 0 )
+            the order at which to compute the linear approximation to the solution
+        constraint : Sequence[str | Sequence[str]] ( = [] )
+            occasionally-binding constraints to enforce
+
+        Returns
+        -------
+        ModelSolution
+        """
+        if constraint:
+            # parameters defining how model-switching occurs
+            exprs, sigma = kwargs.pop('exprs', {}), kwargs.pop('sigma', {})
+
+            # occasionally-bound solutions are always conditional on shock paths
+            exog, shocks = kwargs.pop('exog', None), kwargs.pop('shocks', 100)
+            init = kwargs.get('init', None)
+
+            solution = OccBinSolution(
+                self,
+                constraint=constraint,
+                exprs=exprs,
+                sigma=sigma,
+                exog=exog,
+                shocks=shocks,
+                init=init
+            )
+
         else:
-            raise ValueError(f"unrecognized `order` value: {order}")
+            if not order:
+                order = default_order
+
+            if order == 1:
+                solution = FirstOrderSolution(self)
+            elif order == 2:
+                solution = SecondOrderSolution(self)
+            else:
+                raise ValueError(f"unrecognized `order` value: {order}")
 
         self._solution = solution.solve(*args, **kwargs)
         return self._solution
