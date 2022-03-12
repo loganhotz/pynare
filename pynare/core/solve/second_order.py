@@ -166,7 +166,13 @@ class SecondOrderSolver(object):
 
         state_zero = np.zeros((nt, ne), dtype=float)
         cont_gu = gu[~np.isnan(self.dr_cont)]
-        fore_gy = unp.matmul_scalar(gy[~np.isnan(self.dr_fore)], gu[self.tloc])
+
+        try:
+            fore_gy = unp.matmul_scalar(gy[~np.isnan(self.dr_fore)], gu[self.tloc])
+        except ValueError:
+            # one state var, > 1 stoch vars
+            fore_gy = np.outer(gy[~np.isnan(self.dr_fore)], gu[self.tloc])
+
         exo_eye = np.identity(ne, dtype=float)
 
         E = unp.concatenate_maybe_1d((state_zero, cont_gu, fore_gy, exo_eye))
@@ -283,6 +289,11 @@ def solve_ghxu(
     #    dimensions depend on row/column orientation. just cast to 2dims for now
     gy, gu = lower_sol.gy, lower_sol.gu
     ghxx_arr, gy_arr, gu_arr = unp.ensure_2darray((ghxx, gy[tloc], gu[tloc]))
+
+    if gu_arr.shape[1] == 1:
+        # row-orient to conform with the following matrix product
+        gu_arr = np.transpose(gu_arr)
+
     cross_prod = unp.matrix_kronecker_product(ghxx_arr, gy_arr, gu_arr).squeeze()
 
     rhs = E - unp.matmul_scalar(C, cross_prod)
@@ -336,6 +347,11 @@ def solve_ghuu(
     #    additionally only a single shock, state_du will be a scalar). for these
     #    to conform with one another in the kronecker product, ensure 2d
     ghxx_tp1, state_du = unp.ensure_2darray((ghxx_tp1, state_du))
+
+    if state_du.shape[1] == 1:
+        # row-orient to conform with the following matrix product
+        state_du = np.transpose(state_du)
+
     ghxx_tp1_evaluated = unp.matrix_kronecker_product(ghxx_tp1, state_du).squeeze()
 
     rhs = E - ghxx_tp1_evaluated
