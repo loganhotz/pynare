@@ -386,7 +386,10 @@ def matrix_kronecker_product(A, B, C=None):
     else:
         K = np.kron(B, C)
 
-    return np.matmul(A, K)
+    if (A.shape[1] == 1) and (K.shape[0] == 1):
+        return np.outer(A, K)
+    else:
+        return np.matmul(A, K)
 
 
 
