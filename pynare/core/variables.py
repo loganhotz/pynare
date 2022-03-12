@@ -83,7 +83,7 @@ class VarArray(np.ndarray):
 
     def get_loc(self, key: str | Iterable[str]):
         """
-        retrieve the locations of variables in VarArray based one their name
+        retrieve the locations of variables in VarArray based on their name
 
         Parameters
         ----------
