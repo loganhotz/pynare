@@ -8,6 +8,7 @@ import numpy as np
 from itertools import product
 from functools import cached_property
 
+from pynare.utils.dtypes import is_iterable_not_str
 import pynare.utils.numpy as unp
 
 
@@ -16,10 +17,39 @@ class Summary(object):
 
     features = ()
 
-    def __init__(self, obj, sig: int = 6, pad: int = 4):
+    def __init__(
+        self,
+        obj,
+        sig: int = 6,
+        pad: int = 4,
+        only: str | Iterable[str] = ''
+    ):
         self.obj = obj
         self.sig = sig
         self.pad = ' '*pad
+
+        if is_iterable_not_str(only):
+            for feat in only:
+                if feat not in self.features:
+                    avail = ', '.join(self.features)
+                    raise ValueError(f"{repr(feat)}. available features are {avail}")
+
+            self.only = only
+
+        else:
+            if not isinstance(only, str):
+                raise TypeError(f"{type(only)}. 'only' must be one or many str")
+
+            if only:
+                if only not in self.features:
+                    avail = ', '.join(self.features)
+                    raise ValueError(f"{repr(only)}. available features are {avail}")
+                self.only = [only]
+
+            else:
+                # default to all features
+                self.only = self.features
+
 
     def __repr__(self):
         class_ = self.__class__.__name__
@@ -34,7 +64,8 @@ class ModelSummary(Summary):
     features = (
         'variables',
         'eigen',
-        'stoch'
+        'stoch',
+        'params'
     )
 
     def __init__(
@@ -44,13 +75,16 @@ class ModelSummary(Summary):
         pad: int = 4,
         variables: bool = True,
         eigen: bool = True,
-        stoch: bool = True
+        stoch: bool = True,
+        params: str | Iterable[str] = 'all',
+        only: str | Iterable[str] = ''
     ):
-        super().__init__(model, sig, pad)
+        super().__init__(model, sig, pad, only)
 
         self.variables = variables
         self.eigen = eigen
         self.stoch = stoch
+        self.params = params
 
     def variables_str(self):
         """
@@ -144,10 +178,37 @@ class ModelSummary(Summary):
         stoch_block = delim.join(stoch_strs)
         return stoch_block
 
+    def params_str(self):
+        # optionally select a subset of params
+        if self.params == 'all':
+            display = self.obj.params.calib
+            param_strs = ['model calibration:']
+
+        else:
+            display = {p: self.obj.params[p] for p in self.params}
+            param_strs = ['partial model calibration:']
+
+        # format width and number of digits
+        width = max(map(len, display)) + 1
+        sig, pad = self.sig, self.pad
+
+        # number of points to left of decimal. '+3' factors in minus signs
+        with np.errstate(divide='ignore', invalid='ignore'):
+            # locally silence RuntimeWarnings about dividing by zero or infinity
+            values = list(display.values())
+            l = int(np.fix(np.nanmax(np.log10(np.absolute(values)))) + 3)
+
+        for k, v in display.items():
+            row = '= '.join([pad+k.ljust(width), f"{v:{l+sig}.{sig}f}"])
+            param_strs.append(row)
+
+        return '\n'.join(param_strs)
+
     def __str__(self):
         heading = 'model summary:'
         feat = [heading]
-        for f in self.features:
+
+        for f in self.only:
             if getattr(self, f):
                 f_method = f"{f}_str"
                 feat.append(getattr(self, f_method)())
@@ -172,9 +233,10 @@ class ModelStatisticsSummary(Summary):
         moments: bool = True,
         corr: bool = True,
         autocorr: bool = 5,
-        decomp: bool = True
+        decomp: bool = True,
+        only: str | Iterable[str] = ''
     ):
-        super().__init__(model, sig, pad)
+        super().__init__(model, sig, pad, only)
 
         self.moments = moments
         self.corr = corr
@@ -296,7 +358,7 @@ class ModelStatisticsSummary(Summary):
     def __str__(self):
         heading = 'statistics summary:'
         feat = [heading]
-        for f in self.features:
+        for f in self.only:
             if getattr(self, f):
                 f_method = f"{f}_str"
                 feat.append(getattr(self, f_method)())
