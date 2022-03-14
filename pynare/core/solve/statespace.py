@@ -134,21 +134,21 @@ def _compute_structural_state_space(model: Model):
     indexes = model.indexes
 
     J = model.jacobian.array
-    S = J[:, indexes.static_timed[0]]
 
-    Q, R = np.linalg.qr(S, mode='complete')
-
-    # for model to be properly identified, rank(R) must equal number of static vars
-    if R.size:
+    ns = indexes.static_timed[0]
+    if ns.size:
+        Q, R = np.linalg.qr(J[:, ns], mode='complete')
         _r = np.linalg.matrix_rank(R)
+
+        # for model to be properly identified, rank(R) must equal number of static vars
+        if _r != indexes.n_static:
+            raise ModelIdentificationError(_r, indexes.n_static)
+
+        # rotated jacobian
+        A = np.dot(np.transpose(Q), J)
+
     else:
-        _r = 0
-
-    if _r != indexes.n_static:
-        raise ModelIdentificationError(_r, indexes.n_static)
-
-    # rotated jacobian
-    A = np.dot(np.transpose(Q), J)
+        A = J.copy()
 
     # partition as according to section 4.1 of Villemot (2011)
     nd = indexes.n_dynamic
