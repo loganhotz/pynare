@@ -64,15 +64,15 @@ end;
 
 
 initval;
-a = ass;
-n = nss;
+a   = ass;
+n   = nss;
 pie = piess;
-rr = rrss;
-r = rss;
-y = yss;
-c = css;
-w = wss;
-mu = muss;
+rr  = rrss;
+r   = rss;
+y   = yss;
+c   = css;
+w   = wss;
+mu  = muss;
 end;
 
 shocks;
