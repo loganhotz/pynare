@@ -1,0 +1,69 @@
+% replicates the four equation new-keynesian model outlined in Sims, Wu, and
+%    Zhang's "The Four Equation New Keynesian Model"
+
+var r, infl, y, yp, qe, theta, x, rn;
+varexo e_a, e_theta, e_qe, e_r;
+
+%-- model parameters
+parameters BETA, Z, SIGMA, CHI, BFI, BCB, GAMMA, ZETA, PHI_PI, PHI_X, RHO_R, RHO_A, RHO_F, RHO_THETA, RHO_Q;
+
+%-- shock variances
+parameters S_A, S_THETA, S_QE, S_R;
+
+
+BETA   = 0.995;
+Z      = 0.33;
+SIGMA  = 1;
+CHI    = 1;
+BFI    = 0.70;
+BCB    = 1 - BFI;
+GAMMA  = 0.086;
+ZETA   = 2.49;
+PHI_PI = 1.5;
+PHI_X  = 0;
+
+RHO_R     = 0.8;
+RHO_A     = 0.8;
+RHO_F     = 0.8;
+RHO_THETA = 0.8;
+RHO_Q     = 0.8;
+
+S_A     = 0.01 * (CHI*(1-Z) + SIGMA)/((1+CHI)*(1-Z));
+S_THETA = 0.01;
+S_QE    = 0.01;
+S_R     = 0.01;
+
+model;
+
+%-- investment-savings (eq 2.1)
+x = x(+1) - ((1-Z)/SIGMA)*(r - infl(+1) - rn) - Z*(BFI*(theta(+1) - theta) + BCB*(qe(+1) - qe));
+
+%-- phillips curve (eq 2.2)
+infl = GAMMA*ZETA*x - (Z*GAMMA*SIGMA)/(1-Z)*(BFI*theta + BCB*qe) + BETA*infl(+1);
+
+%-- taylor rule (eq 2.34)
+r = RHO_R*r(-1) + (1-RHO_R)*(PHI_PI*infl + PHI_X*x) + S_R*e_r;
+
+%-- long bonds (eq 2.35)
+qe = RHO_Q*qe(-1) + S_QE*e_qe;
+
+%-- credit shocks (eq 2.37)
+theta = RHO_THETA*theta(-1) + S_THETA*e_theta;
+
+%-- potential output (eq B.34)
+yp = RHO_A*yp(-1) + ((1+CHI)*(1-Z)/(CHI*(1-Z) + SIGMA))*S_A*e_a;
+
+%-- natural rate (eq B.41)
+rn = (SIGMA*RHO_A - 1)/(1-Z)*yp;
+
+%-- output gap (accounting)
+x = y - yp;
+
+end;
+
+shocks;
+var e_a     = 1;
+var e_theta = 1;
+var e_qe    = 1;
+var e_r     = 1;
+end;

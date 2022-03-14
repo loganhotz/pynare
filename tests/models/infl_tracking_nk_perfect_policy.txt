@@ -1,0 +1,40 @@
+% a simple linear new-keynesian model that tracks the inflation gap over time
+
+var x, pie, r, rd, rn, rr, gap;
+varexo ern;
+
+parameters beta, kappa, phi_pie, sigma_rn, sigma, rho_rn, phi_gap, rho_gap;
+
+%-- behavior
+beta  = 0.9925;
+sigma = 1;
+
+%-- policy
+phi_gap = 0.36;
+rho_gap = 0.90;
+phi_pie = 1.50;
+
+%-- from curdia
+sigma_rn = 0.00237;
+rho_rn   = 0.949;
+
+%-- up in the air
+kappa = 0.03;
+
+
+
+model;
+
+x   = x(+1) - (1/sigma)*(r - pie(+1) - rn);
+pie = beta*pie(+1) + kappa*x;
+rn  = rho_rn*rn(-1) + sigma_rn*ern;
+rd  = rn + phi_pie*pie + phi_gap*gap;
+gap = rho_gap*gap(-1) + pie;
+r   = rd;
+rr  = r - pie(+1);
+
+end;
+
+shocks;
+var ern = 1;
+end;

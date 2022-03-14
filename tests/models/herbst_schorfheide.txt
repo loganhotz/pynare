@@ -1,0 +1,44 @@
+% mod file for the small new-keynesian model in Herbst & Schorfheide's 2015 book,
+% "Bayesian Estimation of DSGE Models". the parameter values are taken directly from
+% the "Candidate.m" file in the accompanying .zip file. however, the values of kappa and
+% the three autoregressive parameters are transformed by the sigmoid function
+
+var y, pi, r, g, z;
+varexo e_r, e_g, e_z;
+
+parameters tau, kappa, psi1, psi2, r_a, pi_a, gamma_q, rho_r, rho_g, rho_z;
+parameters s_r, s_g, s_z;
+
+
+tau     = 2.09;
+kappa   = 0.65769; % sigmoid(0.653)
+psi1    = 2.00;
+psi2    = 0.65;
+r_a     = 0.34;
+pi_a    = 3.16;
+gamma_q = 0.51;
+
+rho_r = 0.81757; % sigmoid(1.5) 
+rho_g = 0.98201; % sigmoid(4.0) 
+rho_z = 0.92414; % sigmoid(2.5) 
+
+s_r = 0.19;
+s_g = 0.65;
+s_z = 0.50;
+
+
+model;
+
+y  = y(+1) - (1/tau)*(r - pi(+1) - z(+1)) + g - g(+1);
+pi = (1/(1+r_a/400))*pi(+1) + kappa*(y - g);
+r  = rho_r*r(-1) + (1-rho_r)*(psi1*pi + psi2*(y - g)) + s_r*e_r;
+g  = rho_g*g(-1) + s_g*e_g;
+z  = rho_z*z(-1) + s_z*e_z;
+
+end;
+
+shocks;
+var e_r = 1;
+var e_g = 1;
+var e_z = 1;
+end;
