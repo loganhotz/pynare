@@ -48,7 +48,7 @@ class VarArray(np.ndarray):
         self.vtype = first
         self.names = np.array(names, dtype=str)
 
-    def __array_function__(self, func, types, args, kwargs):
+    def __array_ufunc__(self, func, types, args, kwargs):
         """
         this method is called by top-level numpy methods. it might have to be extended
         at some point, but for the moment, the collection of variables in VarArray just
@@ -65,8 +65,10 @@ class VarArray(np.ndarray):
 
             return VarArray(variables)
 
-        else:
+        if not all(issubclass(t, VarArray) for t in types):
             return NotImplemented
+
+        return NotImplemented
 
     def __contains__(self, obj):
         if isinstance(obj, str):
@@ -102,7 +104,6 @@ class VarArray(np.ndarray):
             https://stackoverflow.com/questions/8251541/numpy-for-every-element-in-
             one-array-find-the-index-in-another-array
         """
-        from rich import print
 
         if is_iterable_not_str(key):
             idx = np.zeros(len(key), dtype=int)
@@ -271,6 +272,9 @@ def _create_endog_vars(
     """
 
     def _create_endog(name):
+        if isinstance(name, EndogVar):
+            return name
+
         # bunch of `try ... Except ...` blocks for dict/scalar checks
         try:
             i = initial.get(name, initial_default)
@@ -296,11 +300,13 @@ def _create_endog_vars(
 
     if is_iterable_not_str(names):
         # many endogenous variables
-        return [_create_endog(name) for name in names]
+        endog = [_create_endog(name) for name in names]
 
     else:
         # single endogenous variable
-        return [_create_endog(names)]
+        endog = [_create_endog(names)]
+
+    return VarArray(endog)
 
 
 
@@ -333,16 +339,21 @@ def _create_stoch_vars(
 
     default_dict = {'variance': 1.0}
     def _create_stoch(name):
+        if isinstance(name, StochVar):
+            return name
+
         shock_dict = shocks.get(name, default_dict)
         return StochVar(name, **shock_dict)
 
     if is_iterable_not_str(names):
         # many stochastic shocks
-        return [_create_stoch(name) for name in names]
+        stoch = [_create_stoch(name) for name in names]
 
     else:
         # single stochastic shock
-        return [_create_stoch(names)]
+        stoch = [_create_stoch(names)]
+
+    return VarArray(stoch)
 
 
 
@@ -373,16 +384,21 @@ def _create_determ_vars(
 
     default_dict = {'periods': 0, 'values': 1}
     def _create_determ(name):
+        if isinstance(name, DetermVar):
+            return name
+
         determ_dict = shocks.get(name, default_dict)
         return DetermVar(name, **determ_dict)
 
     if is_iterable_not_str(names):
         # many deterministic shocks
-        return [_create_determ(name) for name in names]
+        determ = [_create_determ(name) for name in names]
 
     else:
         # single deterministic shock
-        return [_create_determ(names)]
+        determ = [_create_determ(names)]
+
+    return VarArray(determ)
 
 
 def set_lead_lags(
