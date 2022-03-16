@@ -122,7 +122,7 @@ class ModelRepr(object):
     # dynamic or steady state
     state = ''
 
-    def __init__(self, model: GenericModel):
+    def __init__(self, model: StructuredModel):
         self.model = model
 
         self.endog = model.endog
@@ -151,7 +151,7 @@ class SteadyRepr(ModelRepr):
 
     state = 'steady'
 
-    def __init__(self, model: GenericModel):
+    def __init__(self, model: StructuredModel):
         super().__init__(model)
         self.params = self.model.model_scope
 
@@ -175,7 +175,7 @@ class DynamicRepr(ModelRepr):
 
     state = 'dynamic'
 
-    def __init__(self, model: GenericModel):
+    def __init__(self, model: DynamicModel):
         super().__init__(model)
         self.stoch = self.model.stoch
         self.stoch_names = self.stoch.names

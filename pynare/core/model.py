@@ -5,7 +5,6 @@ from functools import cached_property
 
 from pynare.core.variables import ModelCalibration
 from pynare.core.generic import DynamicModel
-# from pynare.core.generic import GenericModel
 from pynare.core.steady import SteadyState
 from pynare.core.solve import (
     FirstOrderSolution,
