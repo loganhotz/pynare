@@ -82,8 +82,23 @@ class ModelExprs(MutableSequence):
         return f"ModelExprs({n_exprs} exprs)"
 
     def __str__(self):
-        print(self.exprs_str)
-        return ''
+        lhs, rhs = [], []
+        for expr in self.exprs_str:
+            l, r = expr.split('=')
+            lhs.append(l.strip())
+            rhs.append(r.strip())
+
+        width = max(map(len, lhs))
+        pad = 4*' '
+
+        heading = 'Model Expressions'
+        string = [heading]
+
+        for l, r in zip(lhs, rhs):
+            expr = pad + ' = '.join((l.ljust(width), r))
+            string.append(expr)
+
+        return '\n'.join(string)
 
 
 
