@@ -3,7 +3,9 @@ from __future__ import annotations
 
 from functools import cached_property
 
-from pynare.core.generic import GenericModel
+from pynare.core.variables import ModelCalibration
+from pynare.core.generic import DynamicModel
+# from pynare.core.generic import GenericModel
 from pynare.core.steady import SteadyState
 from pynare.core.solve import (
     FirstOrderSolution,
@@ -26,7 +28,7 @@ from pynare.io.files import (
 
 
 
-class Model(GenericModel):
+class Model(DynamicModel):
 
     def __init__(
         self,
@@ -43,6 +45,9 @@ class Model(GenericModel):
         language: str = 'dynare',
         name: str = ''
     ):
+
+        self.local_params = ModelCalibration(local_params)
+
         super().__init__(
             endog=endog,
             stoch=stoch,
@@ -50,7 +55,6 @@ class Model(GenericModel):
             params=params,
             shocks=shocks,
             exprs=exprs,
-            local_params=local_params,
             initial=initial,
             terminal=terminal,
             historical=historical,
@@ -284,11 +288,8 @@ class Model(GenericModel):
 
 
     @property
-    def ss(self):
-        """
-        returns the model's SteadyState object
-        """
-        return SteadyState(self)
+    def model_scope(self):
+        return {**self.params, **self.local_params}
 
 
     @property
@@ -297,28 +298,6 @@ class Model(GenericModel):
         returns an interface for statistics of the model
         """
         return ModelStatistics(self)
-
-
-    @property
-    def sigma(self):
-        """
-        returns the covariance matrix of the stochastic shocks
-        """
-        if self.is_altered or not hasattr(self, '_sigma'):
-            self.update()
-        return self._sigma
-
-
-    @property
-    def jacobian(self):
-        """ returns the dynamic Jacobian of the mode """
-        return self.dynamic_repr.jacobian
-
-
-    @property
-    def hessian(self):
-        """ returns the dynamic hessian of the model """
-        return self.dynamic_repr.hessian
 
 
     @property
@@ -364,39 +343,3 @@ class Model(GenericModel):
             return sol.lower_solution
         else:
             raise NotImplementedError(f"order = {sol.order}")
-
-
-    @property
-    def state_vars(self):
-        """return a VarArray of the state variables in a model"""
-        return self.endog[self.indexes.state]
-
-    @property
-    def pure_forward_vars(self):
-        """returns a VarArray of the purely forward-looking variables"""
-        return self.endog[self.indexes.pure_forward]
-
-    @property
-    def pure_backward_vars(self):
-        """returns a VarArray of the purely backward-looking variables"""
-        return self.endog[self.indexes.pure_backward]
-
-    @property
-    def mixed_vars(self):
-        """returns a VarArray of the mixed-period variables"""
-        return self.endog[self.indexes.mixed]
-
-    @property
-    def static_vars(self):
-        """returns a VarArray of the static variables"""
-        return self.endog[self.indexes.static]
-
-    @property
-    def forward_vars(self):
-        """returns a VarArray of the (not just purely) forward-looking variables"""
-        return self.endog[self.indexes.forward]
-
-    @property
-    def backward_vars(self):
-        """returns a VarArray of the (not just purely) backward-looking variables"""
-        return self.endog[self.indexes.backward]
