@@ -35,7 +35,6 @@ class GenericModel(object):
         exprs: list,
         local_params: dict,
         initial: dict,
-        lead_lag: dict,
         terminal: dict,
         historical: dict,
         language: str,
@@ -49,7 +48,6 @@ class GenericModel(object):
             _endog = _create_endog_vars(
                 names=endog,
                 initial=initial,
-                lead_lag=lead_lag,
                 terminal=terminal,
                 historical=historical
             )
@@ -377,7 +375,6 @@ class GenericModel(object):
             exprs=copy.deepcopy(self.exprs),
             local_params=copy.deepcopy(self.local_params),
             initial=init,
-            lead_lag=ll,
             terminal=term,
             historical=hist,
             language=self.language,

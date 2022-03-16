@@ -156,9 +156,9 @@ class EndogVar(ModelVar):
         self,
         name: str,
         initial: Union[Any, float] = initial_default,
-        lead_lag: Union[Any, Iterable[int]] = lead_lag_default,
         terminal: Union[Any, float] = terminal_default,
-        historical: Union[Any, float] = historical_default
+        historical: Union[Any, float] = historical_default,
+        lead_lag: Union[Any, Iterable[int]] = lead_lag_default
     ):
         super().__init__(name, 'endog')
 
@@ -292,8 +292,7 @@ def _create_endog_vars(
         except AttributeError:
             h = historical
 
-        return EndogVar(name, i, ll, t, h)
-
+        return EndogVar(name, lead_lag=ll, initial=i, terminal=t, historical=h)
 
     if is_iterable_not_str(names):
         # many endogenous variables
@@ -408,6 +407,7 @@ def set_lead_lags(
         the same list of endogenous variables, with `lead_lag` set
     """
     var_periods = read_lead_lags(endog, exprs)
+
     for eg in endog:
         periods = var_periods[eg.name]
         eg.set_lead_lag(periods)

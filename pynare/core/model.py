@@ -38,7 +38,6 @@ class Model(GenericModel):
         exprs: list = [],
         local_params: dict = {},
         initial: dict = {},
-        lead_lag: dict = {},
         terminal: dict = {},
         historical: dict = {},
         language: str = 'dynare',
@@ -53,7 +52,6 @@ class Model(GenericModel):
             exprs=exprs,
             local_params=local_params,
             initial=initial,
-            lead_lag=lead_lag,
             terminal=terminal,
             historical=historical,
             language=language,
@@ -132,9 +130,6 @@ class Model(GenericModel):
         terminal = outline._terminal_values
         historical = outline._historical_values
 
-        # lead lag incidences
-        lead_lag = outline._endo_lead_lags
-
         return Model(
             endog=endogenous,
             stoch=exog_stoch,
@@ -144,7 +139,6 @@ class Model(GenericModel):
             exprs=exprs,
             local_params=local_model_vars,
             initial=initial,
-            lead_lag=lead_lag,
             terminal=terminal,
             historical=historical,
             language=language,
