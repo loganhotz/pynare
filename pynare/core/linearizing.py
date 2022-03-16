@@ -79,7 +79,7 @@ class SteadyJacobian(Linearization):
         super().__init__(model)
 
         # list of functions representing the steady-state model
-        self.funcs = self.model.steady_state_repr.func_list
+        self.funcs = self.model.steady_repr.func_list
         self.differentiate_functions()
 
 
