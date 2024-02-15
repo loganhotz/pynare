@@ -16,7 +16,7 @@ import pynare.utils.numpy as unp
 
 
 
-from rich import print
+# from rich import print
 
 
 class ModelFilter(object):
