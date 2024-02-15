@@ -6,7 +6,8 @@ class ExampleRegistry(object):
         'simple_linear': 'pynare/examples/pynare/simple_linear.mod',
         'optim_ck': 'pynare/examples/pynare/optim_ck.mod',
         'basic_nk': 'pynare/examples/pynare/basic_nk.mod',
-        'four_eq_nk': 'pynare/examples/pynare/four_eq_nk.txt'
+        'four_eq_nk': 'pynare/examples/pynare/four_eq_nk.txt',
+        'herbst_schorfheide': 'pynare/examples/pynare/herbst_schorfheide.txt'
     }
 
     def __init__(self):

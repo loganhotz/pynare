@@ -11,6 +11,7 @@ from functools import cached_property
 import pynare.utils.numpy as unp
 from pynare.errors import ModelIdentificationError
 
+np.set_printoptions(suppress=True, precision=6)
 
 
 class StateSpace(object):
@@ -105,7 +106,13 @@ class StateSpace(object):
         return unp.ensure_2darray((A, B))
 
     def __repr__(self):
-        return 'StateSpace'
+        model_name = self.model.name
+        if model_name:
+            return f"Statespace({repr(model_name)})"
+
+        abs_eigs = np.absolute(self.eigen)
+        n_explosive = np.sum((abs_eigs > 1) | np.isinf(abs_eigs))
+        return f"StateSpace(expl. eigs = {n_explosive})"
 
 
 

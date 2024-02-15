@@ -236,6 +236,8 @@ class DynamicModel(StructuredModel):
             name=name
         )
 
+        self._shocks = shocks
+
         # 'lead_lag' property was set upon StructuredModel initialization
         self.endog = _create_endog_vars(
             names=self.endog.names,
