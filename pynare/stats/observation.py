@@ -20,7 +20,7 @@ from pynare.core.solve.first_order import FirstOrderSolution
 # from pynare.parsing.parser import DynareParser
 
 import pandas as pd
-from rich import print
+# from rich import print
 def aprint(arr): print(pd.DataFrame(arr))
 
 
