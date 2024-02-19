@@ -973,7 +973,7 @@ def order_precedence(rhs_vars):
 
                 # if all vars on the rhs have precedence, we know current var's
                 if all([precedence[var] > 0 for var in rhs]):
-                    precedence[k] = sum([precedence[var] for var in rhs])
+                    precedence[k] = sum([precedence[var] for var in rhs]) + 1
                     n_funcs -= 1
 
         total_iters -= 1
