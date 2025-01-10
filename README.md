@@ -64,7 +64,7 @@ axes = imp.plot()
 plt.show()
 ```
 which generates the figure
-![basic nk](https://github.com/loganhotz/pynare-dev/blob/master/readme_figs/basic_nk_impulse.png?raw=true).
+![basic nk](https://github.com/loganhotz/pynare-dev/blob/master/readme_figs/basic_nk_impulse.png).
 
 the abbreviated Dynare `.mod` file for this model is 
 ```
